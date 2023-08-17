@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "412803437191",
+    "project_id": "safegua-de4be",
+    "storage_bucket": "safegua-de4be.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:412803437191:android:0f02cf9a452eeb5dccde22",
+        "android_client_info": {
+          "package_name": "com.example.safeguarduser"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "412803437191-t3r6ukgv5osu1veqslia9pgt39m4qqmp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAODhDolcuQjMIaQX7ebsQH_Ekq7geYOKg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "412803437191-t3r6ukgv5osu1veqslia9pgt39m4qqmp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
