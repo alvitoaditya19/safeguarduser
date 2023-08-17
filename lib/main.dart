@@ -8,7 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:sensors/sensors.dart';
-
+import 'package:flutter/services.dart';
+import 'package:vibration/vibration.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,28 +45,30 @@ class _LocationPageState extends State<LocationPage> {
   Position? _currentPosition;
   final DatabaseReference _databaseReference =
       FirebaseDatabase.instance.reference().child('data');
+  
+  @override
   void initState() {
-    _getCurrentPosition;
     super.initState();
-        accelerometerEvents.listen((AccelerometerEvent event) {
+ _getCurrentPosition();
+    accelerometerEvents.listen((AccelerometerEvent event) {
       setState(() {
         _x = event.x;
         _y = event.y;
         _z = event.z;
         if (_y < 3 && _x >= -2.5 && _x <= 1) {
           a++;
-          if (a >= 16) {
-            _sendLocationToFirebase(_currentPosition?.latitude, _currentPosition?.longitude);
+          if (a >= 15) {
+            _sendLocationToFirebase(
+                _currentPosition?.latitude, _currentPosition?.longitude);
+            _startVibration();
             pesan = "Pasien Terjatuh";
             a = 0;
-            if (a >= 0 && a < 16) {
-              pesan = "Pasien Aman";
-            }
           }
+        } else {
+          a = 0; // Reset the counter if conditions are not met
         }
       });
     });
-    _databaseReference;
   }
 
   Future<bool> _handleLocationPermission() async {
@@ -129,11 +132,35 @@ class _LocationPageState extends State<LocationPage> {
         'https://maps.app.goo.gl/?link=https://www.google.com/maps/place/$latitude,$longitude';
     _databaseReference.update({
       'address': mapsUrl,
-      'name': "muhammasdd",
-      'status': "no",
+      'name': "vcvcv",
+      'status': "54ddd",
     });
   }
 
+  bool _isVibrating = false;
+
+  void _startVibration() {
+    _isVibrating = true;
+    _vibrateLoop();
+  }
+
+  void _stopVibration() {
+    Vibration.cancel();
+    setState(() {
+      _isVibrating = false;
+    });
+  }
+
+  void _vibrateLoop() {
+    if (_isVibrating) {
+      Vibration.vibrate(duration: 1000);
+      Future.delayed(Duration(seconds: 1), () {
+        if (_isVibrating) {
+          _vibrateLoop();
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -158,21 +185,30 @@ class _LocationPageState extends State<LocationPage> {
                 child: const Text("Send Location to Firebase"),
               ),
               Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Text('Accelerometer Data'),
-              SizedBox(height: 16.0),
-              Text('X: $_x'),
-              SizedBox(height: 16.0),
-              Text('Y: $_y'),
-              SizedBox(height: 16.0),
-              Text('Z: $_z'),
-              SizedBox(height: 50.0),
-              Text('Counting: $a'),
-              SizedBox(height: 50.0),
-              Text('Pesan: $pesan'),
-            ],
-          ),
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text('Accelerometer Data'),
+                  SizedBox(height: 16.0),
+                  Text('X: $_x'),
+                  SizedBox(height: 16.0),
+                  Text('Y: $_y'),
+                  SizedBox(height: 16.0),
+                  Text('Z: $_z'),
+                  SizedBox(height: 50.0),
+                  Text('Counting: $a'),
+                  SizedBox(height: 50.0),
+                  Text('Pesan: $pesan'),
+                ],
+              ),
+              _isVibrating
+                  ? ElevatedButton(
+                      onPressed: _stopVibration,
+                      child: Text('Stop Vibration'),
+                    )
+                  : ElevatedButton(
+                      onPressed: _startVibration,
+                      child: Text('Start Vibration'),
+                    ),
             ],
           ),
         ),
