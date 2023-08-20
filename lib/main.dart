@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -49,7 +51,7 @@ class _LocationPageState extends State<LocationPage> {
   final DatabaseReference _databaseReference =
       FirebaseDatabase.instance.reference().child('data');
   bool _isAccelerometerActive = false;
-
+  StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
   @override
   void initState() {
     super.initState();
@@ -94,6 +96,9 @@ class _LocationPageState extends State<LocationPage> {
     _stopVibration();
     setState(() {
       a = 0;
+      _x = 0;
+      _y = 0;
+      _z - 0;
       pesan = "Patient Safe";
       _isAccelerometerActive = false;
     });
@@ -158,7 +163,7 @@ class _LocationPageState extends State<LocationPage> {
   void _sendLocationToFirebase(
       double? latitude, double? longitude, String? address) async {
     final mapsUrl =
-        'https://maps.app.goo.gl/?link=https://www.google.com/maps/place/$latitude,$longitude';
+        'https://www.google.com/maps/place/$latitude,$longitude';
     _databaseReference.update({
       'address': mapsUrl,
       'name': "Patient",
@@ -201,10 +206,10 @@ class _LocationPageState extends State<LocationPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(
-            'Confirmation Status',
-            style: blackTextStyle.copyWith(
+            'Patient Fallen!!!!',
+            style: redTextStyle.copyWith(
               fontSize: 16,
-              fontWeight: medium,
+              fontWeight: semiBold,
             ),
           ),
           content: Text('Have you treated the patient?',
@@ -215,6 +220,20 @@ class _LocationPageState extends State<LocationPage> {
           actions: <Widget>[
             TextButton(
               child: Text(
+                'No',
+                style: blackTextStyle.copyWith(
+                  fontSize: 16,
+                  fontWeight: medium,
+                ),
+              ),
+              onPressed: () {
+                _stopVibration();
+
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text(
                 'Yes',
                 style: blackTextStyle.copyWith(
                   fontSize: 16,
@@ -222,6 +241,13 @@ class _LocationPageState extends State<LocationPage> {
                 ),
               ),
               onPressed: () {
+                _stopAccelerometerEvents();
+                setState(() {
+                  _x = 0;
+                  _y = 0;
+                  _z = 0;
+                });
+
                 _stopAccelerometer();
                 Map<String, dynamic> updatedData = {
                   'status': 'no',
@@ -252,7 +278,8 @@ class _LocationPageState extends State<LocationPage> {
       if (_isAccelerometerActive) {
         // Start listening to accelerometer events
         _getCurrentPosition();
-        accelerometerEvents.listen((AccelerometerEvent event) {
+        _accelerometerSubscription =
+            accelerometerEvents.listen((AccelerometerEvent event) {
           setState(() {
             _x = event.x;
             _y = event.y;
@@ -269,6 +296,15 @@ class _LocationPageState extends State<LocationPage> {
               }
             } else {
               a = 0; // Reset the counter if conditions are not met
+              Map<String, dynamic> updatedData = {
+                'status': 'no',
+              };
+              a = 0;
+              _databaseReference.update(updatedData).then((_) {
+                print("Data updated successfully");
+              }).catchError((error) {
+                print("Failed to update data: $error");
+              });
               setState(() {
                 _isVibrating = false;
               });
@@ -276,18 +312,15 @@ class _LocationPageState extends State<LocationPage> {
             }
           });
         });
-      } else {
-        // Stop listening to accelerometer events and vibration
-        accelerometerEvents.listen((AccelerometerEvent event) {
-          a = 0; // Reset the counter if conditions are not met
-
-          _stopVibration();
-          setState(() {
-            _isVibrating = false;
-          });
-        });
       }
     });
+  }
+
+  void _stopAccelerometerEvents() {
+    if (_accelerometerSubscription != null) {
+      _accelerometerSubscription!.cancel();
+      _accelerometerSubscription = null;
+    }
   }
 
   @override
@@ -446,6 +479,7 @@ class _LocationPageState extends State<LocationPage> {
                               fontWeight: medium,
                             ),
                           ),
+                          SizedBox(height: 30.0),
                         ],
                       ),
                     )
