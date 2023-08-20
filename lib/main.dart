@@ -45,6 +45,7 @@ class _LocationPageState extends State<LocationPage> {
   double a = 0.0;
   String pesan = "Patient Safe";
   String _applicationStatus = "Application Active";
+  String _status = "yes";
 
   String? _currentAddress;
   Position? _currentPosition;
@@ -56,6 +57,20 @@ class _LocationPageState extends State<LocationPage> {
   void initState() {
     super.initState();
     _isAccelerometerActive = false;
+        _databaseReference.onValue.listen((DatabaseEvent event) {
+      if (event.snapshot.value != null) {
+        Map<dynamic, dynamic> data =
+            event.snapshot.value as Map<dynamic, dynamic>;
+        if (data.containsKey('status')) {
+          setState(() {
+            _status = data['status'];
+          });
+        }
+
+
+
+      }
+    });
     // if (!_isAccelerometerActive) {
     //   _getCurrentPosition();
 
@@ -393,7 +408,8 @@ class _LocationPageState extends State<LocationPage> {
                             height: 12,
                           ),
                           Text(
-                            'Latitude: ${_currentPosition?.latitude ?? ""}',
+                            _status == "yes"?
+                            'Latitude: ${_currentPosition?.latitude ?? ""}' : "0",
                             style: blackTextStyle.copyWith(
                               fontSize: 16,
                               fontWeight: medium,
@@ -403,7 +419,8 @@ class _LocationPageState extends State<LocationPage> {
                             height: 12,
                           ),
                           Text(
-                            'Longitude: ${_currentPosition?.longitude ?? ""}',
+                             _status == "yes"?
+                            'Longitude: ${_currentPosition?.longitude ?? ""}' : "0",
                             style: blackTextStyle.copyWith(
                               fontSize: 16,
                               fontWeight: medium,
@@ -413,7 +430,8 @@ class _LocationPageState extends State<LocationPage> {
                             height: 12,
                           ),
                           Text(
-                            'Address: ${_currentAddress ?? ""}',
+                             _status == "yes"?
+                            'Address: ${_currentAddress ?? ""}': "0",
                             style: blackTextStyle.copyWith(
                               fontSize: 16,
                               fontWeight: medium,

@@ -53,6 +53,8 @@ dependencies:
   location: ^4.3.0
   geolocator: ^8.2.0
   geocoding: ^2.0.4
+  url_launcher: ^6.1.10
+
   sensors: ^2.0.3
 
   google_fonts: ^4.0.4
