@@ -13,7 +13,8 @@ import 'package:safeguarduser/shared/theme.dart';
 import 'package:sensors/sensors.dart';
 import 'package:flutter/services.dart';
 import 'package:vibration/vibration.dart';
-
+import 'package:another_flushbar/flushbar.dart';
+import 'package:flutter/material.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -24,21 +25,139 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Location Example',
-      debugShowCheckedModeBanner: false,
-      home: LocationPage(),
+        title: 'Location Example',
+        debugShowCheckedModeBanner: false,
+        routes: {
+          '/': (context) => AuthenticationPage(),
+          '/main-page': (context) => MainPage(),
+        });
+  }
+}
+
+class AuthenticationPage extends StatefulWidget {
+  @override
+  _AuthenticationPageState createState() => _AuthenticationPageState();
+}
+
+class _AuthenticationPageState extends State<AuthenticationPage> {
+  String enteredCode = "";
+
+void _onButtonPressed(String digit) {
+  setState(() {
+    enteredCode += digit;
+  });
+
+  if (enteredCode.length == 6) {
+    if (enteredCode == "125689") {
+      Navigator.pushNamedAndRemoveUntil(
+                        context, '/main-page', (route) => false);
+    } else {
+      _showWrongCodeFlushbar();
+      _resetCode();
+    }
+  }
+}
+
+void _showWrongCodeFlushbar() {
+  Flushbar(
+    backgroundColor: redColor,
+      titleColor: whiteColor,
+    message: 'Kode salah. Silakan coba lagi.',
+    duration: Duration(seconds: 2),
+  )..show(context);
+}
+
+void _resetCode() {
+  setState(() {
+    enteredCode = "";
+  });
+}
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              'Masukkan Kode',
+               style: blackTextStyle.copyWith(
+              fontSize: 20,
+              fontWeight: semiBold,
+            ),
+            ),
+            SizedBox(height: 20),
+            Text(
+              enteredCode,
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                buildNumberButton("1"),
+                buildNumberButton("2"),
+                buildNumberButton("3"),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                buildNumberButton("4"),
+                buildNumberButton("5"),
+                buildNumberButton("6"),
+              ],
+            ),
+                        Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                buildNumberButton("7"),
+                buildNumberButton("8"),
+                buildNumberButton("9"),
+              ],
+            ),
+            SizedBox(height: 20),
+            // ElevatedButton(
+            //   onPressed: _onDeletePressed,
+            //   child: Text('Hapus'),
+            // ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildNumberButton(String digit) {
+    return Padding(
+      padding: EdgeInsets.all(10),
+      child: ElevatedButton(
+        onPressed: () => _onButtonPressed(digit),
+        child: Text(
+          digit,
+           style: whiteTextStyle.copyWith(
+              fontSize: 24,
+              fontWeight: semiBold,
+            ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: greenColor,
+          padding: EdgeInsets.all(20),
+          minimumSize: Size(70, 70),
+        ),
+      ),
     );
   }
 }
 
-class LocationPage extends StatefulWidget {
-  const LocationPage({Key? key}) : super(key: key);
+class MainPage extends StatefulWidget {
+  const MainPage({Key? key}) : super(key: key);
 
   @override
-  State<LocationPage> createState() => _LocationPageState();
+  State<MainPage> createState() => _MainPageState();
 }
 
-class _LocationPageState extends State<LocationPage> {
+class _MainPageState extends State<MainPage> {
   double _x = 0.0;
   double _y = 0.0;
   double _z = 0.0;
@@ -57,7 +176,7 @@ class _LocationPageState extends State<LocationPage> {
   void initState() {
     super.initState();
     _isAccelerometerActive = false;
-        _databaseReference.onValue.listen((DatabaseEvent event) {
+    _databaseReference.onValue.listen((DatabaseEvent event) {
       if (event.snapshot.value != null) {
         Map<dynamic, dynamic> data =
             event.snapshot.value as Map<dynamic, dynamic>;
@@ -66,9 +185,6 @@ class _LocationPageState extends State<LocationPage> {
             _status = data['status'];
           });
         }
-
-
-
       }
     });
     // if (!_isAccelerometerActive) {
@@ -177,8 +293,7 @@ class _LocationPageState extends State<LocationPage> {
 
   void _sendLocationToFirebase(
       double? latitude, double? longitude, String? address) async {
-    final mapsUrl =
-        'https://www.google.com/maps/place/$latitude,$longitude';
+    final mapsUrl = 'https://www.google.com/maps/place/$latitude,$longitude';
     _databaseReference.update({
       'address': mapsUrl,
       'name': "Patient",
@@ -408,8 +523,9 @@ class _LocationPageState extends State<LocationPage> {
                             height: 12,
                           ),
                           Text(
-                            _status == "yes"?
-                            'Latitude: ${_currentPosition?.latitude ?? ""}' : "0",
+                            _status == "yes"
+                                ? 'Latitude: ${_currentPosition?.latitude ?? ""}'
+                                : "0",
                             style: blackTextStyle.copyWith(
                               fontSize: 16,
                               fontWeight: medium,
@@ -419,8 +535,9 @@ class _LocationPageState extends State<LocationPage> {
                             height: 12,
                           ),
                           Text(
-                             _status == "yes"?
-                            'Longitude: ${_currentPosition?.longitude ?? ""}' : "0",
+                            _status == "yes"
+                                ? 'Longitude: ${_currentPosition?.longitude ?? ""}'
+                                : "0",
                             style: blackTextStyle.copyWith(
                               fontSize: 16,
                               fontWeight: medium,
@@ -430,8 +547,9 @@ class _LocationPageState extends State<LocationPage> {
                             height: 12,
                           ),
                           Text(
-                             _status == "yes"?
-                            'Address: ${_currentAddress ?? ""}': "0",
+                            _status == "yes"
+                                ? 'Address: ${_currentAddress ?? ""}'
+                                : "0",
                             style: blackTextStyle.copyWith(
                               fontSize: 16,
                               fontWeight: medium,
