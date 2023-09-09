@@ -62,7 +62,7 @@ void _showWrongCodeFlushbar() {
   Flushbar(
     backgroundColor: redColor,
       titleColor: whiteColor,
-    message: 'Kode salah. Silakan coba lagi.',
+    message: 'Invalid code. Please check and try again.',
     duration: Duration(seconds: 2),
   )..show(context);
 }
@@ -81,7 +81,7 @@ void _resetCode() {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'Masukkan Kode',
+              'Please enter the code',
                style: blackTextStyle.copyWith(
               fontSize: 20,
               fontWeight: semiBold,
